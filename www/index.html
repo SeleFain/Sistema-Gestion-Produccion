@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2e7d32">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<title>Costos y Precios</title>
+<style>
+:root{--g:#2e7d32;--gl:#e8f5e9;--bg:#f6f8f6;--t:#1b2b1c;--m:#5d6b5e;--c:#fff;--b:#cfd8cf}
+@media(prefers-color-scheme:dark){:root{--gl:#1e3a20;--bg:#121712;--t:#e6efe6;--m:#9fb0a0;--c:#1b231b;--b:#33413400;--b:#334133}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:system-ui,Arial,sans-serif;background:var(--bg);color:var(--t);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+header{background:var(--g);color:#fff;padding:12px 16px}
+header b{font-size:13px;opacity:.85;letter-spacing:.5px}
+header h1{margin:2px 0 8px;font-size:19px}
+.bar{height:6px;background:#ffffff40;border-radius:3px}
+.bar i{display:block;height:100%;background:#fff;border-radius:3px;transition:width .25s}
+main{flex:1;overflow-y:auto;padding:14px 14px 20px}
+.card{background:var(--c);border:1px solid var(--b);border-radius:14px;padding:14px;margin-bottom:12px}
+.hint{color:var(--m);font-size:14px;line-height:1.4;margin:0 0 12px}
+label{display:block;font-size:13px;color:var(--m);margin:10px 0 4px}
+input{width:100%;font-size:17px;padding:11px;border:2px solid var(--g);background:var(--gl);color:var(--t);border-radius:10px}
+.row{border-top:1px solid var(--b);padding:10px 0}
+.row:first-of-type{border-top:0}
+.g3{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.tot{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--m);margin-top:6px}
+.tot b{color:var(--t);font-size:16px}
+.x{background:none;border:0;color:#c62828;font-size:14px;padding:4px}
+.add{width:100%;padding:11px;border:2px dashed var(--g);background:none;color:var(--g);border-radius:10px;font-size:15px;font-weight:600;margin-top:8px}
+.res{background:var(--g);color:#fff;border-radius:14px;padding:16px;margin-bottom:12px}
+.res small{opacity:.85;font-size:13px}
+.res div{font-size:26px;font-weight:700;margin-top:2px}
+.kv{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--b);font-size:15px}
+.kv:first-child{border-top:0}
+.kv b{font-variant-numeric:tabular-nums}
+.ok{background:var(--gl);border-left:5px solid var(--g);padding:12px;border-radius:8px;font-size:15px;line-height:1.4}
+.no{background:#fdecea;color:#7f1d1d;border-left:5px solid #c62828;padding:12px;border-radius:8px;font-size:15px;line-height:1.4}
+nav{display:flex;gap:10px;padding:10px 14px;background:var(--c);border-top:1px solid var(--b)}
+nav button{flex:1;padding:14px;border-radius:12px;font-size:16px;font-weight:700;border:2px solid var(--g);background:var(--c);color:var(--g)}
+nav button.p{background:var(--g);color:#fff}
+nav button:disabled{opacity:.35}
+</style></head>
+<body>
+<header><b id="st"></b><h1 id="ti"></h1><div class="bar"><i id="pr"></i></div></header>
+<main id="mn"></main>
+<nav><button id="bp">Anterior</button><button id="bn" class="p">Siguiente</button></nav>
+<script>
+var KEY='costospan1';
+var S={prod:'PAN',un:'kg',cant:1560,pct:4,
+ins:[['Harina bolsa 25 kg',48,21900],['Levadura seca 20 g',192,950],['Sal kg',24,1500],['Grasa kg',120,4450],['Gas tubo 45 kg',1,69000],['Bolsitas',1560,45]],
+otros:[['Combustible',10,2045],['Servicios',0,0],['Viáticos',0,0],['Transporte',0,0],['Jornales temporales',72,5830]],
+fijos:[['Remuneración del propietario',1,850000],['Remuneración empleados fijos',0,0],['Seguros (incendio)',1,9500],['Servicios (luz, agua, etc.)',1,75000],['Impuestos específicos - Monotributo',1,63000],['Alquileres',1,150000],['Amortización de bienes',0,0]]};
+try{var sv=localStorage.getItem(KEY);if(sv)S=JSON.parse(sv)}catch(e){}
+var save=function(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+var sum=function(l){return l.reduce(function(a,r){return a+(r[1]||0)*(r[2]||0)},0)};
+var f=function(n){return '$ '+(n||0).toLocaleString('es-AR',{maximumFractionDigits:2})};
+var f0=function(n){return (n||0).toLocaleString('es-AR',{maximumFractionDigits:2})};
+function C(){var c=S.cant||0,o={};
+o.tins=sum(S.ins);o.tot=sum(S.otros);o.cvt=o.tins+o.tot;o.cft=sum(S.fijos);o.ct=o.cvt+o.cft;
+o.cvu=c?o.cvt/c:0;o.ctu=c?o.ct/c:0;o.gan=o.ctu*(S.pct||0)/100;o.pv=o.ctu+o.gan;
+o.ventas=o.pv*c;o.util=o.ventas-o.ct;o.log=o.ct?o.util/o.ct*100:0;
+o.mc=o.pv-o.cvu;o.pe=o.mc>0?o.cft/o.mc:null;return o}
+function rows(k,a,b,c){var h='';S[k].forEach(function(r,i){h+='<div class="row"><input data-k="'+k+'" data-i="'+i+'" data-f="0" value="'+r[0]+'" aria-label="'+a+'">'
++'<div class="g3"><div><label>'+b+'</label><input type="number" inputmode="decimal" data-k="'+k+'" data-i="'+i+'" data-f="1" value="'+r[1]+'"></div>'
++'<div><label>'+c+'</label><input type="number" inputmode="decimal" data-k="'+k+'" data-i="'+i+'" data-f="2" value="'+r[2]+'"></div></div>'
++'<div class="tot"><button class="x" data-del="'+k+':'+i+'">Quitar</button><span>Total <b data-r="'+k+':'+i+'"></b></span></div></div>'});
+return h+'<button class="add" data-add="'+k+'">+ Agregar renglón</button>'}
+function big(l,id){return '<div class="res"><small>'+l+'</small><div data-o="'+id+'"></div></div>'}
+function kv(l,id){return '<div class="kv"><span>'+l+'</span><b data-o="'+id+'"></b></div>'}
+var P=[
+['Paso 1','Tu producción',function(){return '<p class="hint">Completá solo los casilleros verdes. Si sabés la producción por semana, multiplicala por 4; si es diaria, multiplicala por los días producidos en el mes.</p><div class="card"><label>¿Qué producto hacés? (ej.: pan, dulces, remeras)</label><input data-s="prod" value="'+S.prod+'"><label>Unidad (kg, unidad, docena, litro…)</label><input data-s="un" value="'+S.un+'"><label>Cantidad producida por mes (solo números)</label><input type="number" inputmode="decimal" data-s="cant" value="'+S.cant+'"></div>'}],
+['Paso 2 · A','Costos variables: insumos',function(){return '<p class="hint">Son los gastos que suben o bajan según cuánto producís. Anotá TODO lo que usás, aunque parezca poco.</p><div class="card">'+rows('ins','Insumo','Cantidad','Precio unitario')+'</div>'+big('Total insumos','tins')}],
+['Paso 2 · A','Costos variables: otros',function(){return '<p class="hint">Otros gastos que dependen de la producción.</p><div class="card">'+rows('otros','Concepto','Cantidad','Precio unitario')+'</div><div class="card">'+kv('Costos variables totales (CVT)','cvt')+kv('Costo variable unitario (CVU)','cvu')+'</div>'}],
+['Paso 2 · B','Costos fijos',function(){return '<p class="hint">Son los gastos que tenés aunque no produzcas nada. No cambian según la cantidad.</p><div class="card">'+rows('fijos','Concepto','Cantidad','Precio unitario')+'</div>'+big('Total costos fijos (CFT)','cft')}],
+['Paso 2 · C','Resumen de costos',function(){return '<p class="hint">Costo unitario del producto, sin incluir la ganancia.</p><div class="card">'+kv('Costos variables totales','cvt')+kv('Costos fijos totales','cft')+kv('Costos totales','ct')+'</div>'+big('Costo total unitario','ctu')}],
+['Paso 3','Ganancia',function(){return '<p class="hint">¿Cuánto pretendés ganar?</p><div class="card"><label>Ganancia esperada (% sobre el costo)</label><input type="number" inputmode="decimal" data-s="pct" value="'+S.pct+'"></div>'+big('Ganancia por unidad','gan')}],
+['Paso 4','Precio',function(){return '<p class="hint">Precio = costo total unitario + ganancia por unidad.</p><div class="card">'+kv('Costo total unitario','ctu')+kv('Ganancia por unidad','gan')+'</div>'+big('Precio final por unidad','pv')}],
+['Paso 5','Ingresos mensuales',function(){return '<div class="card">'+kv('Producto','nom')+kv('Cantidad','cq')+kv('Precio de venta','pv')+'</div>'+big('Total ventas mensuales','ventas')}],
+['Paso 6','Resultado',function(){return '<div class="card">'+kv('Ventas','ventas')+kv('Costos totales','ct')+kv('Utilidad del emprendimiento','util')+'</div>'+big('Ganancia lograda','logp')}],
+['Punto de equilibrio','PE = CFT / (PV − CVU)',function(){return '<div class="card">'+kv('CFT · costos fijos totales','cft')+kv('PV · precio de venta','pv')+kv('CVU · costo variable unitario','cvu')+kv('PV − CVU','mc')+'</div>'+big('Punto de equilibrio','pe')+'<div id="ms"></div>'}]];
+var n=0,mn=document.getElementById('mn');
+function upd(){var o=C();
+document.querySelectorAll('[data-o]').forEach(function(e){var k=e.dataset.o,v;
+if(k=='nom')v=S.prod;else if(k=='cq')v=f0(S.cant)+' '+S.un;else if(k=='logp')v=f0(o.log)+' %';
+else if(k=='pe')v=o.pe===null?'No hay equilibrio (PV ≤ CVU)':f0(Math.ceil(o.pe*100)/100)+' '+S.un+' de '+S.prod;
+else v=f(o[k]);e.textContent=v});
+document.querySelectorAll('[data-r]').forEach(function(e){var p=e.dataset.r.split(':'),r=S[p[0]][p[1]];e.textContent=f((r[1]||0)*(r[2]||0))});
+var m=document.getElementById('ms');
+if(m){if(o.pe===null)m.innerHTML='<div class="no">El precio de venta no cubre el costo variable unitario. Subí el precio o bajá los costos.</div>';
+else if(S.cant>=o.pe)m.innerHTML='<div class="ok">Necesitás vender al menos <b>'+f0(Math.ceil(o.pe))+' '+S.un+'</b> por mes para no perder. Producís '+f0(S.cant)+', así que cubrís todos tus costos.</div>';
+else m.innerHTML='<div class="no">Necesitás vender al menos <b>'+f0(Math.ceil(o.pe))+' '+S.un+'</b> por mes para no perder, pero producís '+f0(S.cant)+'. Con este precio y estos costos no llegás al equilibrio.</div>'}}
+function show(){var p=P[n];document.getElementById('st').textContent=p[0].toUpperCase()+'  ·  '+(n+1)+' DE '+P.length;
+document.getElementById('ti').textContent=p[1];document.getElementById('pr').style.width=((n+1)/P.length*100)+'%';
+mn.innerHTML=p[2]();mn.scrollTop=0;document.getElementById('bp').disabled=n==0;
+var b=document.getElementById('bn');b.textContent=n==P.length-1?'Volver al inicio':'Siguiente';upd()}
+document.getElementById('bn').onclick=function(){n=n==P.length-1?0:n+1;show()};
+document.getElementById('bp').onclick=function(){if(n>0){n--;show()}};
+mn.addEventListener('input',function(e){var t=e.target,d=t.dataset;
+if(d.s){S[d.s]=(d.s=='prod'||d.s=='un')?t.value:(parseFloat(t.value)||0)}
+else if(d.k){S[d.k][d.i][d.f]=d.f=='0'?t.value:(parseFloat(t.value)||0)}
+save();upd()});
+mn.addEventListener('click',function(e){var d=e.target.dataset;
+if(d.add){S[d.add].push(['Nuevo renglón',0,0]);save();show();mn.scrollTop=mn.scrollHeight}
+else if(d.del){var p=d.del.split(':');S[p[0]].splice(p[1],1);save();show()}});
+show();
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')==0)navigator.serviceWorker.register('sw.js').catch(function(){});
+</script></body></html>
